@@ -22,6 +22,10 @@
       copy:
         dest: /etc/sudoers.d/pbsadmin
         content: "pbsadmin ALL=(root) NOPASSWD: ALL"
+    - name: Install acl package
+      apt:
+        name: acl
+        state: present
   handlers:
     - name: restart_sshd
       service:
