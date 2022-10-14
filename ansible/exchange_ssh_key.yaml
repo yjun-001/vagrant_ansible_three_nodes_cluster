@@ -2,7 +2,7 @@
 - name: Exchange Keys between servers
   become: yes
   become_user: pbsadmin
-  hosts: nodes
+  hosts: all_nodes
   tasks:
     - name: SSH KeyGen command
       tags: run
@@ -20,8 +20,9 @@
       authorized_key:
         user: pbsadmin
         state: present
-        key: "{{ lookup('file','/tmp/buffer/{{item.dest}}-id_rsa.pub')}}"
-      when: "{{ item.dest != ansible_hostname }}"
-      with_items: 
-        - { dest: "{{groups['nodes'][1]}}"}
-        - { dest: "{{groups['nodes'][0]}}"}
+        key: "{{ lookup('file','/tmp/buffer/{{item.dest}}-id_rsa.pub') }}"
+      when: item.dest != ansible_hostname
+      with_items:
+        - { dest: "{{ groups['all_nodes'][0] }}"}
+        - { dest: "{{ groups['all_nodes'][1] }}"}
+        - { dest: "{{ groups['all_nodes'][2] }}"}
