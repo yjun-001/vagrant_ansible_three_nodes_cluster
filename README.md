@@ -18,7 +18,7 @@ https://github.com/yjun-001/vagrant_ansible_three_nodes_cluster/blob/9637f676be8
   - enable SSH Authentication between each hosts, so each host can ssh other without password
 - [Todo]: install openPBS package
 
-## Action: To run/destroy the cluster
+## In action: Create/Run/destroy the cluster
 - to create and run the cluster
 ```bash
 >vagrant up
