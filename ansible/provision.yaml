@@ -1,4 +1,4 @@
 ---
-- include: admin_acct_creation.yaml
-- include: hostfile_update.yaml
-- include: exchange_ssh_key.yaml
+- include: admin_user_add.yaml
+- include: hostsfile_update.yaml
+- include: sshkey_exchange.yaml

@@ -85,13 +85,5 @@ Vagrant.configure("2") do |config|
       ansible.install = true
       #vagrant_synced_folder_default_type = ""
     end
-
-    #machine.vm.provision :ansible_local do |ansible|
-    #  ansible.playbook       = "exchange_ssh_key.yaml"
-    #  ansible.verbose        = true
-    #  ansible.install        = true
-    #  ansible.limit          = "all" # or only "nodes" group, etc.
-    #  ansible.inventory_path = "/vagrant/inventory"
-    #end
   end
 end
