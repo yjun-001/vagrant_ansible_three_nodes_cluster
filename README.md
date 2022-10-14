@@ -2,8 +2,8 @@
 
 Create a three nodes PBS HPC cluster on local windows desktop by using vagrant and ansible, pure *100%* code (IoC)
 
-## This is cluster [Inventory file]: 
-(https://github.com/yjun-001/vagrant_ansible_three_nodes_cluster/blob/9637f676be8b0d188f076783c5155ff5d4d6c07b/ansible/inventory/hosts#L8)
+## This is cluster Inventory file
+[Inventory file:](https://github.com/yjun-001/vagrant_ansible_three_nodes_cluster/blob/9637f676be8b0d188f076783c5155ff5d4d6c07b/ansible/inventory/hosts#L8)
 
 ## Build process:
 - vagrant create three virtual box VMs (one master node, two nodes)
