@@ -15,7 +15,7 @@ Vagrant.configure("2") do |config|
     machine.vm.provision "shell", inline: <<-SHELL
       if grep -sq "#{ssh_pub_key}" /home/vagrant/.ssh/authorized_keys; then
         echo "SSH keys already provisioned."
-        return;
+        exit 0; 
       fi
       echo "SSH key provisioning."
       mkdir -p /home/vagrant/.ssh/
@@ -36,7 +36,7 @@ Vagrant.configure("2") do |config|
     machine.vm.provision "shell", inline: <<-SHELL
       if grep -sq "#{ssh_pub_key}" /home/vagrant/.ssh/authorized_keys; then
         echo "SSH keys already provisioned."
-        return;
+        exit 0;
       fi
       echo "SSH key provisioning."
       mkdir -p /home/vagrant/.ssh/
@@ -55,7 +55,7 @@ Vagrant.configure("2") do |config|
     machine.vm.provision "shell", inline: <<-SHELL
       if grep -sq "#{ssh_pub_key}" /home/vagrant/.ssh/authorized_keys; then
         echo "SSH keys already provisioned."
-        return;
+        exit 0;
       fi
       echo "SSH key provisioning."
       mkdir -p /home/vagrant/.ssh/
