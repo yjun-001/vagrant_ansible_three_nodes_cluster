@@ -1,6 +1,6 @@
 # Buid three_nodes_cluster
 
-Create a three nodes openPBS HPC cluster on local windows desktop by using vagrant and ansible, pure *100%* code (IoC)
+Create a three nodes openPBS HPC cluster on local windows desktop by using vagrant and ansible, pure *100%* code (IaC)
 
 ## Prerequisite:
 Reference this Repository to setup [local vagrant VM development environment](https://github.com/yjun-001/vagrant_vm_windows10)
