@@ -7,7 +7,7 @@ Reference this Repository to setup [local vagrant VM development environment](ht
 
 ## Cluster Inventory file:
 
-https://github.com/yjun-001/vagrant_ansible_three_nodes_cluster/blob/master/ansible/inventory/hosts#L1-L11
+https://github.com/yjun-001/vagrant_ansible_three_nodes_cluster/blob/797c0509439e646e6d9ab2588c6335cf018a7ac3/ansible/inventory/hosts#L1
 
 ## Cluster Nodes build/provision process:
 - vagrant create three virtual box VMs (one master node, two nodes)
