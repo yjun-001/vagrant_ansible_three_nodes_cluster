@@ -1,5 +1,31 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+=begin
+  author:  Jun
+  version: 1.01
+  usage: vagrant up
+=end
+
+def Get_Hosts_from_Inventory(inventory_File)
+  @host_data = {}
+  section = nil
+  value = nil
+  File.readlines(inventory_File).each do |line|
+    line = line.chomp
+    unless (/^\#/.match(line))    # skip line start with #, as comment lines
+      if (line =~ /^([^=]+?)\s+([^=]+?)\s*=\s*(.*?)\s*$/)
+        name = $1
+        section = $2
+        value = $3
+        @host_data[name]=value
+      end
+      if (line =~ /^\[(.*)\]\s*$/)   # skip [] sections
+         break
+      end
+    end
+  end
+  @host_data
+end
 
 Vagrant.configure("2") do |config|
   config.vm.box = "generic/ubuntu2004"
@@ -7,83 +33,53 @@ Vagrant.configure("2") do |config|
 
   ssh_prv_key = File.read("#{Dir.home}/.ssh/id_rsa")
   ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+  host_port_count = 2500
+  hosts = Get_Hosts_from_Inventory("#{Dir.pwd}/ansible/inventory/hosts")
+  hosts.each do | node, ip |
+    #puts node, ip
+    config.vm.define node do | machine |
+      machine.vm.hostname = "#{node}"
+      machine.vm.network "forwarded_port", guest: 22, host: host_port_count, id: "ssh", auto_correct: false
+      host_port_count += 1
+      machine.vm.network "private_network", ip: "#{ip}"
+      machine.vm.provision "shell", inline: <<-SHELL
+        if grep -sq "#{ssh_pub_key}" /home/vagrant/.ssh/authorized_keys; then
+          echo "SSH keys already provisioned."
+          exit 0; 
+        fi
+        echo "SSH key provisioning."
+        mkdir -p /home/vagrant/.ssh/
+        touch /home/vagrant/.ssh/authorized_keys
+        echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+        echo #{ssh_pub_key} > /home/vagrant/.ssh/id_rsa.pub
+        chmod 644 /home/vagrant/.ssh/id_rsa.pub
+      SHELL
 
-  config.vm.define "node1" do |machine|
-    machine.vm.hostname = "node1"
-    #machine.vm.network "forwarded_port", guest: 22, host: 2201, id: "ssh", auto_correct: false
-    machine.vm.network "private_network", ip: "192.168.56.15"
-    machine.vm.provision "shell", inline: <<-SHELL
-      if grep -sq "#{ssh_pub_key}" /home/vagrant/.ssh/authorized_keys; then
-        echo "SSH keys already provisioned."
-        exit 0; 
-      fi
-      echo "SSH key provisioning."
-      mkdir -p /home/vagrant/.ssh/
-      touch /home/vagrant/.ssh/authorized_keys
-      echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
-      echo #{ssh_pub_key} > /home/vagrant/.ssh/id_rsa.pub
-      chmod 644 /home/vagrant/.ssh/id_rsa.pub
-      # echo 'Host 192.168.*.*' >> /home/vagrant/.ssh/config
-      # echo 'StrictHostKeyChecking no' >> /home/vagrant/.ssh/config
-      # echo 'UserKnownHostsFile /dev/null' >> /home/vagrant/.ssh/config
-      # chmod -R 600 /home/vagrant/.ssh/config
-    SHELL
-  end
+      if node == 'master'
+        machine.vm.provision "shell", inline: <<-SHELL
+          echo "#{ssh_prv_key}" > /home/vagrant/.ssh/id_rsa
+          chmod 600 /home/vagrant/.ssh/id_rsa
+          chown -R vagrant:vagrant /home/vagrant
+        SHELL
 
-  config.vm.define "node2" do |machine|
-    machine.vm.hostname = "node2"
-    machine.vm.network "private_network", ip: "192.168.56.16"
-    machine.vm.provision "shell", inline: <<-SHELL
-      if grep -sq "#{ssh_pub_key}" /home/vagrant/.ssh/authorized_keys; then
-        echo "SSH keys already provisioned."
-        exit 0;
-      fi
-      echo "SSH key provisioning."
-      mkdir -p /home/vagrant/.ssh/
-      touch /home/vagrant/.ssh/authorized_keys
-      echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
-      echo #{ssh_pub_key} > /home/vagrant/.ssh/id_rsa.pub
-      chmod 644 /home/vagrant/.ssh/id_rsa.pub
-    SHELL
-  end
+        # fix ubuntu ERROR: '~ansible' by install manually
+        machine.vm.provision "shell", inline: <<-SHELL
+          apt-get update
+          apt-get install -y ansible 
+        SHELL
 
-  config.vm.define "master" do |machine|
-    machine.vm.hostname = "master"
-    machine.vm.network "private_network", ip: "192.168.56.4"
-
-    # insert vagrant ssh insecure key to master host
-    machine.vm.provision "shell", inline: <<-SHELL
-      if grep -sq "#{ssh_pub_key}" /home/vagrant/.ssh/authorized_keys; then
-        echo "SSH keys already provisioned."
-        exit 0;
-      fi
-      echo "SSH key provisioning."
-      mkdir -p /home/vagrant/.ssh/
-      touch /home/vagrant/.ssh/authorized_keys
-      echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
-      echo #{ssh_pub_key} > /home/vagrant/.ssh/id_rsa.pub
-      chmod 644 /home/vagrant/.ssh/id_rsa.pub
-      echo "#{ssh_prv_key}" > /home/vagrant/.ssh/id_rsa
-      chmod 600 /home/vagrant/.ssh/id_rsa
-      chown -R vagrant:vagrant /home/vagrant
-    SHELL
-
-    # fix ubuntu ERROR: '~ansible' by install manually
-    machine.vm.provision "shell", inline: <<-SHELL
-      apt-get update
-      apt-get install -y ansible 
-    SHELL
-
-    machine.vm.synced_folder 'ansible', '/vagrant', id: "vagrant-root", disabled: false, mount_options: ["dmode=775"]
-    #machine.vm.provision "file", source: "./ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
-    machine.vm.provision "ansible_local" do |ansible|
-      ansible.become   = true
-      ansible.limit    = "all" # or only "nodes" group, etc.
-      ansible.playbook = "provision.yaml"
-      ansible.inventory_path = "/vagrant/inventory"
-      ansible.verbose = true
-      ansible.install = true
-      #vagrant_synced_folder_default_type = ""
+        machine.vm.synced_folder 'ansible', '/vagrant', id: "vagrant-root", disabled: false, mount_options: ["dmode=775"]
+        #machine.vm.provision "file", source: "./ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
+        machine.vm.provision "ansible_local" do |ansible|
+          ansible.become   = true
+          ansible.limit    = "all" # or only "nodes" group, etc.
+          ansible.playbook = "provision.yaml"
+          ansible.inventory_path = "/vagrant/inventory"
+          # ansible.verbose = true
+          ansible.install = true
+          #vagrant_synced_folder_default_type = ""
+        end
+      end
     end
   end
 end
