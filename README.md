@@ -3,7 +3,8 @@
 Create a three nodes openPBS HPC cluster on local windows desktop by using vagrant and ansible, pure *100%* code (IaC)
 
 ## Prerequisite:
-Reference this Repository to setup [local vagrant VM development environment](https://github.com/yjun-001/vagrant_vm_windows10)
+- Reference this Repository to setup [local vagrant VM development environment](https://github.com/yjun-001/vagrant_vm_windows10)
+- Preload OpenPBS binary (openpbs_22.05.11.ubuntu_20.04) to ansible/downloads folder
 
 ## Cluster Inventory file:
 
@@ -12,11 +13,18 @@ https://github.com/yjun-001/vagrant_ansible_three_nodes_cluster/blob/797c0509439
 ## Cluster Nodes build/provision process:
 - vagrant create three virtual box VMs (one master node, two nodes)
   - using vagrant ubuntu 20.04 image 
-- once VMs generated, ansible playbook kick-in for post-configuration
+- Once VMs generated, ansible playbook kick-in for post-configuration
   - add cluster admin user (pbsadmin)
   - update /etc/hosts by hostname and cluster IPs on each nodes
-  - enable SSH Authentication between each hosts, so each host can ssh other without password
-- [Todo]: install openPBS package
+  - exchange ssh public keys between servers and enable SSH Authentication between each hosts, so each host can ssh other without password
+  - update each know_hosts file, so ssh login without anonnying prompt
+- Install OpenPBS package
+  - Install openpbs-execution package and its dependency packages on each nodes
+  - Install openpbs-server package and its dependency packages on head nodes
+  - add nodes in working queue, setup permission to submit a job
+- [] copy test job find_prime.sh (preload in /vagrant/downloads/)
+  - submit it to cluster, and get the results
+   
 
 ## In action: Create/Run/destroy the cluster
 - to create and run the cluster

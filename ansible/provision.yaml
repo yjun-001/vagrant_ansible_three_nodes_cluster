@@ -2,3 +2,5 @@
 - include: admin_user_add.yaml
 - include: hostsfile_update.yaml
 - include: sshkey_exchange.yaml
+- include: known_hosts_update.yaml
+- include: openpbs_install.yaml

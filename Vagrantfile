@@ -27,6 +27,29 @@ def Get_Hosts_from_Inventory(inventory_File)
   @host_data
 end
 
+def Set_Host_Public_SSHkey(machine, ssh_pub_key)
+  machine.vm.provision "shell", inline: <<-SHELL
+    if grep -sq "#{ssh_pub_key}" /home/vagrant/.ssh/authorized_keys; then
+      echo "SSH keys already provisioned."
+      exit 0; 
+    fi
+    echo "SSH key provisioning."
+    mkdir -p /home/vagrant/.ssh/
+    touch /home/vagrant/.ssh/authorized_keys
+    echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+    echo #{ssh_pub_key} > /home/vagrant/.ssh/id_rsa.pub
+    chmod 644 /home/vagrant/.ssh/id_rsa.pub
+  SHELL
+end
+
+def Set_Host_Private_SSHkey(machine, ssh_prv_key)
+  machine.vm.provision "shell", inline: <<-SHELL
+    echo "#{ssh_prv_key}" > /home/vagrant/.ssh/id_rsa
+    chmod 600 /home/vagrant/.ssh/id_rsa
+    chown -R vagrant:vagrant /home/vagrant
+  SHELL
+end
+
 Vagrant.configure("2") do |config|
   config.vm.box = "generic/ubuntu2004"
   #config.vm.hostname = "hpc-node"
@@ -37,30 +60,18 @@ Vagrant.configure("2") do |config|
   hosts = Get_Hosts_from_Inventory("#{Dir.pwd}/ansible/inventory/hosts")
   hosts.each do | node, ip |
     #puts node, ip
+    #vgnode = ( node != 'master' ) ? node : "master-vg"
+    #config.vm.define vgnode do | machine |
     config.vm.define node do | machine |
       machine.vm.hostname = "#{node}"
       machine.vm.network "forwarded_port", guest: 22, host: host_port_count, id: "ssh", auto_correct: false
       host_port_count += 1
       machine.vm.network "private_network", ip: "#{ip}"
-      machine.vm.provision "shell", inline: <<-SHELL
-        if grep -sq "#{ssh_pub_key}" /home/vagrant/.ssh/authorized_keys; then
-          echo "SSH keys already provisioned."
-          exit 0; 
-        fi
-        echo "SSH key provisioning."
-        mkdir -p /home/vagrant/.ssh/
-        touch /home/vagrant/.ssh/authorized_keys
-        echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
-        echo #{ssh_pub_key} > /home/vagrant/.ssh/id_rsa.pub
-        chmod 644 /home/vagrant/.ssh/id_rsa.pub
-      SHELL
+      machine.vm.synced_folder 'ansible', '/vagrant', id: "vagrant-root", disabled: false, mount_options: ["dmode=775"]
+      Set_Host_Public_SSHkey(machine, ssh_pub_key)
 
       if node == 'master'
-        machine.vm.provision "shell", inline: <<-SHELL
-          echo "#{ssh_prv_key}" > /home/vagrant/.ssh/id_rsa
-          chmod 600 /home/vagrant/.ssh/id_rsa
-          chown -R vagrant:vagrant /home/vagrant
-        SHELL
+        Set_Host_Private_SSHkey(machine, ssh_prv_key)
 
         # fix ubuntu ERROR: '~ansible' by install manually
         machine.vm.provision "shell", inline: <<-SHELL
@@ -68,7 +79,7 @@ Vagrant.configure("2") do |config|
           apt-get install -y ansible 
         SHELL
 
-        machine.vm.synced_folder 'ansible', '/vagrant', id: "vagrant-root", disabled: false, mount_options: ["dmode=775"]
+        #machine.vm.synced_folder 'ansible', '/vagrant', id: "vagrant-root", disabled: false, mount_options: ["dmode=775"]
         #machine.vm.provision "file", source: "./ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
         machine.vm.provision "ansible_local" do |ansible|
           ansible.become   = true
