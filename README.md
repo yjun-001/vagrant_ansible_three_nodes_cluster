@@ -24,7 +24,8 @@ https://github.com/yjun-001/vagrant_ansible_three_nodes_cluster/blob/797c0509439
   - Install openpbs-execution package and its dependency packages on each nodes
   - Install openpbs-server package and its dependency packages on head nodes
   - add nodes in working queue, setup permission to submit a job
-- [] copy test job find_prime.sh (preload in /vagrant/downloads/)
+- [] Todo: 
+  - copy test job find_prime.sh (preload in /vagrant/downloads/)
   - submit it to cluster, and get the results
    
 
