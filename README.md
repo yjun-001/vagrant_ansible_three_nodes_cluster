@@ -6,7 +6,7 @@ Create a three nodes openPBS HPC cluster on local windows desktop by using [**va
 
 ## Prerequisite:
 - Reference this Repository to setup [local vagrant VM development environment](https://github.com/yjun-001/vagrant_vm_windows10)
-- Preload OpenPBS binary ([openpbs_22.05.11.ubuntu_20.04](https://vcdn.altair.com/rl/OpenPBS/openpbs_22.05.11.ubuntu_20.04.zip)) to ansible/downloads folder
+- Preload OpenPBS binary ([openpbs_22.05.11.ubuntu_20.04](https://vcdn.altair.com/rl/OpenPBS/openpbs_22.05.11.ubuntu_20.04.zip)), and unzip to ansible/downloads folder
 
 ## Cluster Inventory file:
 https://github.com/yjun-001/vagrant_ansible_three_nodes_cluster/blob/949435031903a27fcd9130e9abce99e0fa7c1a4c/ansible/inventory/hosts#L1-L14
